@@ -1,0 +1,9 @@
+KC20 FLEXIBLE AIGLE — dossier d'hébergement (v2026-09-05e)
+
+Contenu à déposer tel quel à la racine du site (GitHub Pages, Cloudflare Pages, Netlify, serveur interne) :
+  index.html      l'application
+  manifest.json   fiche d'installation (nom, icône, plein écran)
+  sw.js           service worker (mise à jour automatique + fonctionnement hors ligne)
+  icons/          icônes 180 / 192 / 512
+
+Mise à jour : remplacer index.html (et sw.js si fourni) — les téléphones se mettent à jour à l'ouverture suivante.
