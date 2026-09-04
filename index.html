@@ -361,7 +361,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-05f</span>
+    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-05g</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -1197,10 +1197,22 @@ if(LEGEND_UNCONFIRMED.length === 0){
   installBar.innerHTML = '<button type="button" class="apply-btn" id="kc20-install-btn" style="width:100%; background:var(--orange,#e8590c);">⬇ Installer l\'application sur ce téléphone (icône + plein écran)</button>';
   bar.parentNode.insertBefore(installBar, bar);
   document.getElementById('kc20-install-btn').addEventListener('click', () => window.kc20InstallPrompt());
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.MSStream;
+  const iosHint = 'iPhone / iPad : dans Safari, bouton Partager (carré avec flèche) → « Sur l\'écran d\'accueil » pour installer l\'application (icône KC20, plein écran).';
   window.__kc20RenderInstall = () => {
-    const can = !!window.__kc20InstallEvt && !window.__kc20IsStandalone();
-    installBar.style.display = can ? 'block' : 'none';
-    const fb = document.getElementById('kc20-first-install'); if(fb){ fb.style.display = can ? 'block' : 'none'; }
+    const standalone = window.__kc20IsStandalone();
+    const can = !!window.__kc20InstallEvt && !standalone;
+    if(isIOS && !standalone){
+      installBar.style.display = 'block';
+      installBar.innerHTML = '<div class="gresult-note">📲 ' + iosHint + '</div>';
+    } else {
+      installBar.style.display = can ? 'block' : 'none';
+    }
+    const fb = document.getElementById('kc20-first-install');
+    if(fb){
+      if(isIOS && !standalone){ fb.style.display = 'block'; fb.textContent = '📲 Partager → « Sur l\'écran d\'accueil » pour installer'; fb.style.background = '#fff'; fb.style.color = 'var(--ink-soft)'; fb.style.border = '1px solid var(--line)'; fb.onclick = null; }
+      else fb.style.display = can ? 'block' : 'none';
+    }
   };
   window.__kc20RenderInstall();
   // Premier lancement : demander la clé tout de suite (URL pré-remplie), sauf si l'utilisateur a choisi de rester hors ligne
