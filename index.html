@@ -361,7 +361,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-05h</span>
+    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-05i</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -941,7 +941,7 @@
 
   </div>
 
-  <footer>Outil local — les données de stock sont propres à ce lien, pas à Anthropic.</footer>
+  <footer>KC20 FLEXIBLE AIGLE — local sertissage</footer>
 </div>
 
 <script>
@@ -1188,7 +1188,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
       else if(s.status === 'error') { txt = `☁ Google Sheet — erreur : ${s.error}`; color = '#b02a2a'; }
       else txt = '☁ Google Sheet — connexion…';
     } else if(m === 'local') txt = '📱 Mode autonome : stock enregistré sur cet appareil uniquement — appuyer pour configurer la synchronisation';
-    else txt = '🔗 Espace partagé Claude — appuyer pour configurer une synchronisation Google Sheet';
+    else txt = '🔗 Stockage de l\'aperçu — appuyer pour configurer la synchronisation Google Sheet';
     bar.innerHTML = `<span style="${color ? 'color:' + color : ''}">${txt}</span><span style="opacity:.6;">⚙</span>`;
   }
   window.__kc20RenderSync = render; render();
