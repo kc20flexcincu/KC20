@@ -361,7 +361,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-05e</span>
+    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-05f</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -945,6 +945,14 @@
 </div>
 
 <script>
+// Installation : Chrome émet beforeinstallprompt quand l'appli est installable ; on le garde pour un bouton dédié.
+window.__kc20InstallEvt = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__kc20InstallEvt = e; if(window.__kc20RenderInstall) window.__kc20RenderInstall(); });
+window.addEventListener('appinstalled', () => { window.__kc20InstallEvt = null; if(window.__kc20RenderInstall) window.__kc20RenderInstall(); });
+window.__kc20IsStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+window.kc20InstallPrompt = async () => { const e = window.__kc20InstallEvt; if(!e) return false; e.prompt(); try{ await e.userChoice; }catch(err){} window.__kc20InstallEvt = null; if(window.__kc20RenderInstall) window.__kc20RenderInstall(); return true; };
+</script>
+<script>
 // ---------- Stockage : Google Sheet (synchronisation) > espace partagé Claude > local à l'appareil ----------
 const KC20_SYNC_DEFAULT_URL = 'https://script.google.com/macros/s/AKfycby8HEslBpwQc0UfGVLBSkKICRDP0XF6epp5wYvABL3oUCZ6_DU7biJ3QmNAsXIbAXN6/exec';
 const KC20_SYNC = (() => { try { return JSON.parse(localStorage.getItem('kc20:sync') || 'null'); } catch(e){ return null; } })();
@@ -1184,6 +1192,17 @@ if(LEGEND_UNCONFIRMED.length === 0){
     bar.innerHTML = `<span style="${color ? 'color:' + color : ''}">${txt}</span><span style="opacity:.6;">⚙</span>`;
   }
   window.__kc20RenderSync = render; render();
+  // Bouton / bandeau d'installation tant que l'appli n'est pas installée
+  const installBar = document.createElement('div'); installBar.id = 'kc20-installbar'; installBar.style.cssText = 'display:none; margin:0 0 10px;';
+  installBar.innerHTML = '<button type="button" class="apply-btn" id="kc20-install-btn" style="width:100%; background:var(--orange,#e8590c);">⬇ Installer l\'application sur ce téléphone (icône + plein écran)</button>';
+  bar.parentNode.insertBefore(installBar, bar);
+  document.getElementById('kc20-install-btn').addEventListener('click', () => window.kc20InstallPrompt());
+  window.__kc20RenderInstall = () => {
+    const can = !!window.__kc20InstallEvt && !window.__kc20IsStandalone();
+    installBar.style.display = can ? 'block' : 'none';
+    const fb = document.getElementById('kc20-first-install'); if(fb){ fb.style.display = can ? 'block' : 'none'; }
+  };
+  window.__kc20RenderInstall();
   // Premier lancement : demander la clé tout de suite (URL pré-remplie), sauf si l'utilisateur a choisi de rester hors ligne
   if(window.__kc20Mode !== 'sheet' && !localStorage.getItem('kc20:sync-skip')){
     const ov = document.createElement('div');
@@ -1195,6 +1214,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
       <input type="text" id="kc20-first-url" value="${KC20_SYNC_DEFAULT_URL}" style="width:100%; margin-bottom:6px; font-size:11px; color:var(--ink-soft);">
       <input type="text" id="kc20-first-token" placeholder="Clé d'accès" autocomplete="off" style="width:100%; margin-bottom:10px; font-size:16px;">
       <button type="button" class="apply-btn" id="kc20-first-go" style="width:100%; margin-bottom:8px;">Se connecter</button>
+      <button type="button" class="apply-btn" id="kc20-first-install" style="width:100%; margin-bottom:8px; background:var(--orange,#e8590c); display:none;">⬇ Installer l'application sur ce téléphone</button>
       <button type="button" class="apply-btn" id="kc20-first-skip" style="width:100%; background:#fff; color:var(--ink-soft); border:1px solid var(--line);">Continuer sans synchronisation (stock local)</button>
       <p class="decomp-example" id="kc20-first-msg" style="margin:8px 0 0;"></p>
     </div>`;
@@ -1222,6 +1242,8 @@ if(LEGEND_UNCONFIRMED.length === 0){
       }catch(e){ fmsg.textContent = '✗ Feuille injoignable (réseau ?). Vous pouvez continuer sans synchronisation et réessayer plus tard via le bandeau.'; }
     });
     document.getElementById('kc20-first-skip').addEventListener('click', () => { localStorage.setItem('kc20:sync-skip', '1'); ov.remove(); });
+    document.getElementById('kc20-first-install').addEventListener('click', () => window.kc20InstallPrompt());
+    if(window.__kc20RenderInstall) window.__kc20RenderInstall();
     document.getElementById('kc20-first-token').addEventListener('keydown', (e) => { if(e.key === 'Enter') document.getElementById('kc20-first-go').click(); });
   }
   bar.addEventListener('click', () => { panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; });
