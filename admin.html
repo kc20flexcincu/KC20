@@ -361,7 +361,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06d</span>
+    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06e</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -1178,7 +1178,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
       <p class="decomp-title" style="margin-bottom:4px;">Accès administrateur</p>
       <div id="kc20-admin-gate">
         <p class="decomp-example" style="margin:0 0 8px;">Mot de passe administrateur requis (différent de la clé de synchronisation) pour déverrouiller le changement de clé.</p>
-        <input type="password" id="kc20-admin-pass" placeholder="Mot de passe administrateur" style="width:100%; margin-bottom:8px;" autocomplete="off">
+        <input type="text" id="kc20-admin-pass" placeholder="Mot de passe administrateur" style="width:100%; margin-bottom:8px;" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         <button type="button" class="apply-btn" id="kc20-admin-unlock" style="width:100%;">Déverrouiller</button>
         <p class="decomp-example" id="kc20-admin-msg" style="margin:8px 0 0;"></p>
       </div>
@@ -1190,7 +1190,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
         <p class="decomp-example" id="kc20-newkey-msg" style="margin:8px 0 0;"></p>
         <div style="margin-top:14px; border-top:1px dashed var(--line); padding-top:10px;">
           <p class="decomp-title" style="margin-bottom:4px;">Changer le mot de passe administrateur</p>
-          <input type="password" id="kc20-adminpass-new" placeholder="Nouveau mot de passe (4 caractères minimum)" style="width:100%; margin-bottom:8px;" autocomplete="off">
+          <input type="text" id="kc20-adminpass-new" placeholder="Nouveau mot de passe (4 caractères minimum)" style="width:100%; margin-bottom:8px;" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
           <button type="button" class="apply-btn" id="kc20-adminpass-go" style="width:100%;">Changer le mot de passe</button>
           <p class="decomp-example" id="kc20-adminpass-msg" style="margin:8px 0 0;"></p>
         </div>
