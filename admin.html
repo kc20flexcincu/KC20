@@ -361,7 +361,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06h</span>
+    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06i</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -1167,7 +1167,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
   panel.innerHTML = `<p class="decomp-title">Synchronisation Google Sheet</p>
     <p class="decomp-example" style="margin:0 0 8px;">Collez l'URL "/exec" du script Apps Script et la clé secrète (TOKEN) définie dans le script. Le stock, les réglages de sertissage et les références ajoutées seront partagés via la feuille Google.</p>
     <input type="text" id="kc20-sync-url" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%; margin-bottom:6px;">
-    <input type="text" id="kc20-sync-token" placeholder="Clé secrète (TOKEN)" style="width:100%; margin-bottom:8px;">
+    <input type="text" id="kc20-sync-token" placeholder="Clé secrète (TOKEN)" style="width:100%; margin-bottom:8px;" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" name="39549-nofill">
     <div class="id-controls">
       <button type="button" class="apply-btn" id="kc20-sync-test">Tester la connexion</button>
       <button type="button" class="apply-btn" id="kc20-sync-save">Enregistrer et recharger</button>
@@ -1185,7 +1185,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
       <div id="kc20-admin-panel" style="display:none;">
         <p class="decomp-title" style="margin-bottom:4px;">Changer la clé d'accès</p>
         <p class="decomp-example" style="margin:0 0 8px;">Depuis n'importe quel téléphone déjà connecté — plus besoin de rouvrir le script. Les autres téléphones devront ressaisir la nouvelle clé à leur prochaine connexion.</p>
-        <input type="text" id="kc20-newkey-new" placeholder="Nouvelle clé (3 caractères minimum)" style="width:100%; margin-bottom:8px;">
+        <input type="text" id="kc20-newkey-new" placeholder="Nouvelle clé (3 caractères minimum)" style="width:100%; margin-bottom:8px;" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" name="26388-nofill">
         <button type="button" class="apply-btn" id="kc20-newkey-go" style="width:100%; background:var(--orange,#e8590c);">Changer la clé</button>
         <p class="decomp-example" id="kc20-newkey-msg" style="margin:8px 0 0;"></p>
         <div style="margin-top:14px; border-top:1px dashed var(--line); padding-top:10px;">
@@ -1246,7 +1246,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
       <p class="decomp-title" style="margin:0 0 6px;">Connexion au stock partagé</p>
       <p class="decomp-example" style="margin:0 0 10px;">Entrez la clé d'accès à la feuille Google du local (demandez-la au responsable). L'adresse est déjà renseignée.</p>
       <input type="text" id="kc20-first-url" value="${KC20_SYNC_DEFAULT_URL}" style="width:100%; margin-bottom:6px; font-size:11px; color:var(--ink-soft);">
-      <input type="text" id="kc20-first-token" placeholder="Clé d'accès" autocomplete="off" style="width:100%; margin-bottom:10px; font-size:16px;">
+      <input type="text" id="kc20-first-token" placeholder="Clé d'accès" style="width:100%; margin-bottom:10px; font-size:16px;" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" name="5276-nofill">
       <button type="button" class="apply-btn" id="kc20-first-go" style="width:100%; margin-bottom:8px;">Se connecter</button>
       <button type="button" class="apply-btn" id="kc20-first-install" style="width:100%; margin-bottom:8px; background:var(--orange,#e8590c); display:none;">⬇ Installer l'application sur ce téléphone</button>
       <button type="button" class="apply-btn" id="kc20-first-skip" style="width:100%; background:#fff; color:var(--ink-soft); border:1px solid var(--line);">Continuer sans synchronisation (stock local)</button>
