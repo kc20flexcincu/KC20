@@ -361,7 +361,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06e</span>
+    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06f</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -1331,7 +1331,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
   document.getElementById('kc20-admin-unlock').addEventListener('click', async () => {
     const amsg = document.getElementById('kc20-admin-msg');
     const url = document.getElementById('kc20-sync-url').value.trim();
-    const pass = document.getElementById('kc20-admin-pass').value;
+    const pass = document.getElementById('kc20-admin-pass').value.trim();
     if(!url){ amsg.textContent = 'Renseignez d\'abord l\'adresse du script ci-dessus.'; return; }
     if(!pass){ amsg.textContent = 'Mot de passe requis.'; return; }
     amsg.textContent = 'Vérification…';
@@ -1350,7 +1350,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
   document.getElementById('kc20-adminpass-go').addEventListener('click', async () => {
     const pmsg = document.getElementById('kc20-adminpass-msg');
     const url = document.getElementById('kc20-sync-url').value.trim();
-    const newPass = document.getElementById('kc20-adminpass-new').value;
+    const newPass = document.getElementById('kc20-adminpass-new').value.trim();
     if(!kc20AdminPass){ pmsg.textContent = 'Session verrouillée — rechargez la page.'; return; }
     if(!newPass || newPass.length < 4){ pmsg.textContent = 'Le nouveau mot de passe doit faire au moins 4 caractères.'; return; }
     pmsg.textContent = 'Changement en cours…';
