@@ -954,7 +954,7 @@ window.kc20InstallPrompt = async () => { const e = window.__kc20InstallEvt; if(!
 </script>
 <script>
 // ---------- Stockage : Google Sheet (synchronisation) > espace partagé Claude > local à l'appareil ----------
-const KC20_SYNC_DEFAULT_URL = 'https://script.google.com/macros/s/AKfycby8HEslBpwQc0UfGVLBSkKICRDP0XF6epp5wYvABL3oUCZ6_DU7biJ3QmNAsXIbAXN6/exec';
+const KC20_SYNC_DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbzxVKrvSF22QFvX1tsLYlCejCNEkNJwIoots73tJ63dJlR8fOeGWQT93yjSBfkcsZ-VmA/exec';
 const KC20_SYNC = null; // DÉMO : jamais de synchronisation
 const kc20Local = {
   get: async (k) => { const v = localStorage.getItem('kc20demo:' + k); if(v === null) throw new Error('not found'); return { key: k, value: v, shared: false }; },

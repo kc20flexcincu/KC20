@@ -361,7 +361,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06f</span>
+    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06h</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -954,7 +954,7 @@ window.kc20InstallPrompt = async () => { const e = window.__kc20InstallEvt; if(!
 </script>
 <script>
 // ---------- Stockage : Google Sheet (synchronisation) > espace partagé Claude > local à l'appareil ----------
-const KC20_SYNC_DEFAULT_URL = 'https://script.google.com/macros/s/AKfycby8HEslBpwQc0UfGVLBSkKICRDP0XF6epp5wYvABL3oUCZ6_DU7biJ3QmNAsXIbAXN6/exec';
+const KC20_SYNC_DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbzxVKrvSF22QFvX1tsLYlCejCNEkNJwIoots73tJ63dJlR8fOeGWQT93yjSBfkcsZ-VmA/exec';
 const KC20_SYNC = (() => { try { return JSON.parse(localStorage.getItem('kc20:sync') || 'null'); } catch(e){ return null; } })();
 const kc20Local = {
   get: async (k) => { const v = localStorage.getItem('kc20:' + k); if(v === null) throw new Error('not found'); return { key: k, value: v, shared: false }; },
@@ -1343,7 +1343,9 @@ if(LEGEND_UNCONFIRMED.length === 0){
         document.getElementById('kc20-admin-panel').style.display = 'block';
         amsg.textContent = '';
       } else {
-        amsg.textContent = '✗ Mot de passe incorrect.';
+        // DIAGNOSTIC TEMPORAIRE : affiche ce qui a été envoyé et reçu, caractère par caractère (codes Unicode) pour repérer un caractère invisible.
+        const codes = [...pass].map(c => c.charCodeAt(0)).join(',');
+        amsg.innerHTML = '✗ Mot de passe incorrect.<br><small style="opacity:.7;">Envoyé : "' + pass + '" (longueur ' + pass.length + ', codes ' + codes + ')<br>Réponse serveur : ' + JSON.stringify(j) + '</small>';
       }
     }catch(e){ amsg.textContent = '✗ Injoignable : ' + e.message; }
   });

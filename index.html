@@ -361,7 +361,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06d</span>
+    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06h</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -954,7 +954,7 @@ window.kc20InstallPrompt = async () => { const e = window.__kc20InstallEvt; if(!
 </script>
 <script>
 // ---------- Stockage : Google Sheet (synchronisation) > espace partagé Claude > local à l'appareil ----------
-const KC20_SYNC_DEFAULT_URL = 'https://script.google.com/macros/s/AKfycby8HEslBpwQc0UfGVLBSkKICRDP0XF6epp5wYvABL3oUCZ6_DU7biJ3QmNAsXIbAXN6/exec';
+const KC20_SYNC_DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbzxVKrvSF22QFvX1tsLYlCejCNEkNJwIoots73tJ63dJlR8fOeGWQT93yjSBfkcsZ-VmA/exec';
 const KC20_SYNC = (() => { try { return JSON.parse(localStorage.getItem('kc20:sync') || 'null'); } catch(e){ return null; } })();
 const kc20Local = {
   get: async (k) => { const v = localStorage.getItem('kc20:' + k); if(v === null) throw new Error('not found'); return { key: k, value: v, shared: false }; },
@@ -1173,7 +1173,29 @@ if(LEGEND_UNCONFIRMED.length === 0){
       <button type="button" class="apply-btn" id="kc20-sync-save">Enregistrer et recharger</button>
       <button type="button" class="apply-btn" id="kc20-sync-clear" style="background:#fff; color:var(--ink-soft); border:1px solid var(--line);">Désactiver</button>
     </div>
-    <p class="decomp-example" id="kc20-sync-msg" style="margin:8px 0 0;"></p>`;
+    <p class="decomp-example" id="kc20-sync-msg" style="margin:8px 0 0;"></p>
+    <div style="margin-top:14px; border-top:1px dashed var(--line); padding-top:10px;">
+      <p class="decomp-title" style="margin-bottom:4px;">Accès administrateur</p>
+      <div id="kc20-admin-gate">
+        <p class="decomp-example" style="margin:0 0 8px;">Mot de passe administrateur requis (différent de la clé de synchronisation) pour déverrouiller le changement de clé.</p>
+        <input type="text" id="kc20-admin-pass" placeholder="Mot de passe administrateur" style="width:100%; margin-bottom:8px;" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button type="button" class="apply-btn" id="kc20-admin-unlock" style="width:100%;">Déverrouiller</button>
+        <p class="decomp-example" id="kc20-admin-msg" style="margin:8px 0 0;"></p>
+      </div>
+      <div id="kc20-admin-panel" style="display:none;">
+        <p class="decomp-title" style="margin-bottom:4px;">Changer la clé d'accès</p>
+        <p class="decomp-example" style="margin:0 0 8px;">Depuis n'importe quel téléphone déjà connecté — plus besoin de rouvrir le script. Les autres téléphones devront ressaisir la nouvelle clé à leur prochaine connexion.</p>
+        <input type="text" id="kc20-newkey-new" placeholder="Nouvelle clé (3 caractères minimum)" style="width:100%; margin-bottom:8px;">
+        <button type="button" class="apply-btn" id="kc20-newkey-go" style="width:100%; background:var(--orange,#e8590c);">Changer la clé</button>
+        <p class="decomp-example" id="kc20-newkey-msg" style="margin:8px 0 0;"></p>
+        <div style="margin-top:14px; border-top:1px dashed var(--line); padding-top:10px;">
+          <p class="decomp-title" style="margin-bottom:4px;">Changer le mot de passe administrateur</p>
+          <input type="text" id="kc20-adminpass-new" placeholder="Nouveau mot de passe (4 caractères minimum)" style="width:100%; margin-bottom:8px;" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <button type="button" class="apply-btn" id="kc20-adminpass-go" style="width:100%;">Changer le mot de passe</button>
+          <p class="decomp-example" id="kc20-adminpass-msg" style="margin:8px 0 0;"></p>
+        </div>
+      </div>
+    </div>`;
   bar.parentNode.insertBefore(panel, bar.nextSibling);
   const cfg = KC20_SYNC || {};
   document.getElementById('kc20-sync-url').value = cfg.url || KC20_SYNC_DEFAULT_URL;
@@ -1287,6 +1309,79 @@ if(LEGEND_UNCONFIRMED.length === 0){
     localStorage.setItem('kc20:sync', JSON.stringify({ url, token })); location.reload();
   });
   document.getElementById('kc20-sync-clear').addEventListener('click', () => { localStorage.removeItem('kc20:sync'); localStorage.setItem('kc20:sync-skip', '1'); location.reload(); });
+  // ---------- Changer la clé d'accès ----------
+  async function kc20CallSync(baseUrl, params){
+    try{
+      const q = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+      const r = await fetch(baseUrl + '?' + q + '&_=' + Date.now(), { redirect:'follow' });
+      return await r.json();
+    }catch(e){
+      return await new Promise((resolve, reject) => {
+        const cb = 'kc20chg' + Date.now(); const s = document.createElement('script');
+        const t = setTimeout(() => { delete window[cb]; s.remove(); reject(new Error('délai dépassé')); }, 20000);
+        window[cb] = (d) => { clearTimeout(t); delete window[cb]; s.remove(); resolve(d); };
+        s.onerror = () => { clearTimeout(t); delete window[cb]; s.remove(); reject(new Error('script injoignable')); };
+        const q = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+        s.src = baseUrl + '?' + q + '&callback=' + cb + '&_=' + Date.now(); document.head.appendChild(s);
+      });
+    }
+  }
+  // ---------- Accès administrateur (mot de passe séparé, vérifié côté serveur) ----------
+  let kc20AdminPass = null; // jamais persisté : re-verrouillé à chaque rechargement
+  document.getElementById('kc20-admin-unlock').addEventListener('click', async () => {
+    const amsg = document.getElementById('kc20-admin-msg');
+    const url = document.getElementById('kc20-sync-url').value.trim();
+    const pass = document.getElementById('kc20-admin-pass').value.trim();
+    if(!url){ amsg.textContent = 'Renseignez d\'abord l\'adresse du script ci-dessus.'; return; }
+    if(!pass){ amsg.textContent = 'Mot de passe requis.'; return; }
+    amsg.textContent = 'Vérification…';
+    try{
+      const j = await kc20CallSync(url, { action:'adminlogin', adminpass: pass });
+      if(j && j.ok){
+        kc20AdminPass = pass;
+        document.getElementById('kc20-admin-gate').style.display = 'none';
+        document.getElementById('kc20-admin-panel').style.display = 'block';
+        amsg.textContent = '';
+      } else {
+        // DIAGNOSTIC TEMPORAIRE : affiche ce qui a été envoyé et reçu, caractère par caractère (codes Unicode) pour repérer un caractère invisible.
+        const codes = [...pass].map(c => c.charCodeAt(0)).join(',');
+        amsg.innerHTML = '✗ Mot de passe incorrect.<br><small style="opacity:.7;">Envoyé : "' + pass + '" (longueur ' + pass.length + ', codes ' + codes + ')<br>Réponse serveur : ' + JSON.stringify(j) + '</small>';
+      }
+    }catch(e){ amsg.textContent = '✗ Injoignable : ' + e.message; }
+  });
+  document.getElementById('kc20-adminpass-go').addEventListener('click', async () => {
+    const pmsg = document.getElementById('kc20-adminpass-msg');
+    const url = document.getElementById('kc20-sync-url').value.trim();
+    const newPass = document.getElementById('kc20-adminpass-new').value.trim();
+    if(!kc20AdminPass){ pmsg.textContent = 'Session verrouillée — rechargez la page.'; return; }
+    if(!newPass || newPass.length < 4){ pmsg.textContent = 'Le nouveau mot de passe doit faire au moins 4 caractères.'; return; }
+    pmsg.textContent = 'Changement en cours…';
+    try{
+      const j = await kc20CallSync(url, { action:'changeadminpass', adminpass: kc20AdminPass, newadminpass: newPass });
+      if(j && j.ok){ kc20AdminPass = newPass; pmsg.textContent = '✓ Mot de passe administrateur changé.'; document.getElementById('kc20-adminpass-new').value = ''; }
+      else pmsg.textContent = '✗ Refusé : ' + ((j && j.error) || 'réponse invalide');
+    }catch(e){ pmsg.textContent = '✗ Injoignable : ' + e.message; }
+  });
+  document.getElementById('kc20-newkey-go').addEventListener('click', async () => {
+    const nmsg = document.getElementById('kc20-newkey-msg');
+    const url = document.getElementById('kc20-sync-url').value.trim();
+    const oldToken = document.getElementById('kc20-sync-token').value.trim();
+    const newToken = document.getElementById('kc20-newkey-new').value.trim();
+    if(!kc20AdminPass){ nmsg.textContent = 'Session verrouillée — rechargez la page et déverrouillez à nouveau.'; return; }
+    if(!url || !oldToken){ nmsg.textContent = 'Connectez-vous d\'abord avec la clé actuelle ci-dessus.'; return; }
+    if(!newToken || newToken.length < 3){ nmsg.textContent = 'La nouvelle clé doit faire au moins 3 caractères.'; return; }
+    nmsg.textContent = 'Changement en cours…';
+    try{
+      const j = await kc20CallSync(url, { token: oldToken, action:'changekey', newtoken: newToken, adminpass: kc20AdminPass });
+      if(j && j.ok){
+        localStorage.setItem('kc20:sync', JSON.stringify({ url, token: newToken }));
+        nmsg.textContent = '✓ Clé changée. Rechargement…';
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        nmsg.textContent = '✗ Refusé : ' + ((j && j.error) === 'token' ? 'clé actuelle incorrecte' : (j && j.error) === 'adminpass' ? 'mot de passe administrateur incorrect' : (j && j.error) || 'réponse invalide');
+      }
+    }catch(e){ nmsg.textContent = '✗ Injoignable : ' + e.message; }
+  });
   if(window.__kc20Mode === 'sheet'){
     const pull = async () => { const changed = await window.__kc20Pull(); render(); if(changed){ try{ await loadStock(); }catch(e){} } };
     pull();
