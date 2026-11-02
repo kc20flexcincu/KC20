@@ -361,7 +361,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06p</span>
+    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06q</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -2469,6 +2469,30 @@ document.querySelectorAll('.subtab-btn').forEach(btn=>{
   });
 });
 
+const RAB_FAMILIES = [
+  { code:'UM',  label:'UM — Union Mâle (cône 24° + filetage mâle)', cats:['UM'] },
+  { code:'UF',  label:'UF — Union Femelle (cône 24° + filetage femelle)', cats:['UF'] },
+  { code:'UD',  label:'UD — Union Double (2 cônes 24°)', cats:['UD'] },
+  { code:'UDC', label:'UDC — Union Double de cloison', cats:['UDC'] },
+  { code:'CM',  label:'CM — Coude Mâle (2 sorties mâles, 90°)', cats:['CM'] },
+  { code:'CF',  label:'CF — Coude Femelle (cône 24° + écrou tournant, 90°)', cats:['CF'] },
+  { code:'CE',  label:'CE — Coude égal (2 cônes 24°, 90°)', cats:['CE'] },
+  { code:'T',   label:'T — Té égal (3 cônes 24°)', cats:['T'] },
+  { code:'TO',  label:'TO — Té orientable', cats:['TO'] },
+  { code:'TOR', label:'TOR — Té orientable renversé', cats:['TOR'] },
+  { code:'CX',  label:'CX — Croix (4 cônes 24°)', cats:['CX'] },
+  { code:'AT',  label:'AT — Adapteur Tournant', cats:['AT'] },
+  { code:'OBM', label:'OBM — Obturateur Mâle', cats:['OBM'] },
+  { code:'OBF', label:'OBF — Obturateur Femelle', cats:['OBF'] },
+  { code:'B',   label:'B — Bague / Bicône', cats:['B'] },
+  { code:'E',   label:'E — Écrou', cats:['E'] },
+];
+const ADPT_FAMILIES = [ { code:'ADPT', label:'ADPT — Adaptateurs (filetage à filetage, sans cône 24°)', cats:['ADPT'] } ];
+const JS_FAMILIES = [
+  { code:'JS', label:'JS — Jupes à sertir Parker (JSAT)', cats:['JS'] },
+  { code:'JS ISOFLEX', label:'JS ISOFLEX — Douilles à sertir Isoflex', cats:['JS ISOFLEX'] },
+];
+
 // ---------- Ajouter / Enlever ----------
 let arSelected = null;
 let arSelectedCats = null;
@@ -2479,7 +2503,7 @@ const arDetail = document.getElementById('ar-detail');
 buildFamDropdown('ar-fam-dd', 'ar-fam-dd-btn', 'ar-fam-dd-btn-label', 'ar-fam-dd-list', (cats) => {
   arSelectedCats = cats;
   renderArPicker();
-});
+}, () => 'all');
 
 function goToDatabase(query){
   document.querySelector('.tab-btn[data-view="database"]').click();
@@ -2606,7 +2630,7 @@ const trDetail = document.getElementById('tr-detail');
 buildFamDropdown('tr-fam-dd', 'tr-fam-dd-btn', 'tr-fam-dd-btn-label', 'tr-fam-dd-list', (cats) => {
   trSelectedCats = cats;
   renderTrPicker();
-});
+}, () => 'all');
 
 function dbHintItem(q, onEmptyText){
   const inDb = DATA.filter(d => !d.real && d.ref.toLowerCase().includes(q.toLowerCase())).length;
@@ -2696,7 +2720,7 @@ let mqSelectedCats = null;
 buildFamDropdown('mq-fam-dd', 'mq-fam-dd-btn', 'mq-fam-dd-btn-label', 'mq-fam-dd-list', (cats) => {
   mqSelectedCats = cats;
   renderManques();
-});
+}, () => 'all');
 
 const LOW_THRESHOLD = 5;
 
@@ -2818,29 +2842,6 @@ document.addEventListener('click', (e) => {
 // Generic reusable family dropdown builder. onSelect receives cats array or null (Toutes).
 
 // Familles RAB (raccords à bagues) et ADPT pour les filtres Stock / Base — codes ChronoFlex
-const RAB_FAMILIES = [
-  { code:'UM',  label:'UM — Union Mâle (cône 24° + filetage mâle)', cats:['UM'] },
-  { code:'UF',  label:'UF — Union Femelle (cône 24° + filetage femelle)', cats:['UF'] },
-  { code:'UD',  label:'UD — Union Double (2 cônes 24°)', cats:['UD'] },
-  { code:'UDC', label:'UDC — Union Double de cloison', cats:['UDC'] },
-  { code:'CM',  label:'CM — Coude Mâle (2 sorties mâles, 90°)', cats:['CM'] },
-  { code:'CF',  label:'CF — Coude Femelle (cône 24° + écrou tournant, 90°)', cats:['CF'] },
-  { code:'CE',  label:'CE — Coude égal (2 cônes 24°, 90°)', cats:['CE'] },
-  { code:'T',   label:'T — Té égal (3 cônes 24°)', cats:['T'] },
-  { code:'TO',  label:'TO — Té orientable', cats:['TO'] },
-  { code:'TOR', label:'TOR — Té orientable renversé', cats:['TOR'] },
-  { code:'CX',  label:'CX — Croix (4 cônes 24°)', cats:['CX'] },
-  { code:'AT',  label:'AT — Adapteur Tournant', cats:['AT'] },
-  { code:'OBM', label:'OBM — Obturateur Mâle', cats:['OBM'] },
-  { code:'OBF', label:'OBF — Obturateur Femelle', cats:['OBF'] },
-  { code:'B',   label:'B — Bague / Bicône', cats:['B'] },
-  { code:'E',   label:'E — Écrou', cats:['E'] },
-];
-const ADPT_FAMILIES = [ { code:'ADPT', label:'ADPT — Adaptateurs (filetage à filetage, sans cône 24°)', cats:['ADPT'] } ];
-const JS_FAMILIES = [
-  { code:'JS', label:'JS — Jupes à sertir Parker (JSAT)', cats:['JS'] },
-  { code:'JS ISOFLEX', label:'JS ISOFLEX — Douilles à sertir Isoflex', cats:['JS ISOFLEX'] },
-];
 function familiesForKind(kind){
   if(kind === 'rab') return RAB_FAMILIES;
   if(kind === 'adpt') return ADPT_FAMILIES;
