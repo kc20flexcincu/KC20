@@ -371,7 +371,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06s</span>
+    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06t</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -792,6 +792,10 @@
         <div class="fam-dd-list" id="mq-fam-dd-list"></div>
       </div>
 
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:13px;">
+        <label for="mq-target" style="font-weight:600;">Stock à atteindre par référence :</label>
+        <input type="text" inputmode="numeric" id="mq-target" value="10" autocomplete="off" style="width:64px; padding:6px 8px; border:1px solid var(--line); border-radius:5px; font-family:'IBM Plex Mono',monospace; text-align:center;">
+      </div>
       <button type="button" id="mq-copy-btn" class="apply-btn mq-copy-btn">📋 Copier la liste à commander (ruptures + stock bas)</button>
       <div class="stock-subnav">
         <button class="mqtab-btn active" data-mqsub="rupture">Rupture totale</button>
@@ -2791,14 +2795,21 @@ document.querySelectorAll('.mqtab-btn').forEach(btn=>{
 function mqCopyList(){
   const pool = DATA.filter(d => stockState[d.ref] && (d.real || (stockState[d.ref].etagere + stockState[d.ref].tiroir) > 0) && (!mqSelectedCats || mqSelectedCats.includes(d.cat)));
   const lines = [];
+  let target = parseInt(String(document.getElementById('mq-target').value).replace(/\D/g, ''), 10);
+  if(isNaN(target) || target < 1) target = 10;
+  let totalPieces = 0;
   pool.forEach(d => {
     const s = stockState[d.ref], tot = s.etagere + s.tiroir;
     if(tot > LOW_THRESHOLD) return;
+    const q = Math.max(0, target - tot);
+    if(q === 0) return;
+    totalPieces += q;
     const c = mqCodes(d);
-    lines.push([d.ref, c.pk ? 'Parker ' + c.pk : '', c.iso ? 'Isoflex ' + c.iso : '', tot === 0 ? 'RUPTURE' : 'stock ' + tot].filter(Boolean).join(' | '));
+    lines.push([d.ref, c.pk ? 'Parker ' + c.pk : '', c.iso ? 'Isoflex ' + c.iso : '', tot === 0 ? 'RUPTURE' : 'stock ' + tot, 'COMMANDER ' + q].filter(Boolean).join(' | '));
   });
+  if(lines.length) lines.push('', 'Total : ' + totalPieces + ' pièce(s) pour remonter chaque référence à ' + target + '.');
   const txt = lines.length ? lines.join('\n') : 'Rien à commander.';
-  const done = () => { const b = document.getElementById('mq-copy-btn'); const o = b.textContent; b.textContent = '✓ ' + lines.length + ' ligne(s) copiée(s)'; setTimeout(()=>{ b.textContent = o; }, 2000); };
+  const done = () => { const b = document.getElementById('mq-copy-btn'); const o = b.textContent; b.textContent = '✓ ' + (lines.length ? lines.length - 2 : 0) + ' ligne(s) copiée(s)'; setTimeout(()=>{ b.textContent = o; }, 2000); };
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, () => { window.prompt('Copie la liste :', txt); }); }
   else { window.prompt('Copie la liste :', txt); }
 }
