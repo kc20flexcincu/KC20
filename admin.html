@@ -195,6 +195,18 @@
     padding:9px 12px; border:1px solid var(--line); border-radius:6px; background:#fafbfc; margin-bottom:6px;
   }
   .mq-item .code{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; color:var(--steel-dark);}
+  .mq-order-btn{flex:none; width:38px; height:34px; border:1px solid var(--line); border-radius:6px; background:#fff; font-size:16px; cursor:pointer; line-height:1;}
+  .mq-order-btn.on{background:#1b7f3b; color:#fff; border-color:#1b7f3b; font-weight:700;}
+  .cmd-line{border:1px solid var(--line); border-radius:6px; background:#fafbfc; padding:9px 12px; margin-bottom:8px;}
+  .cmd-head{display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  .cmd-head .code{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; color:var(--steel-dark); word-break:break-all;}
+  .cmd-del{border:none; background:#fbe1e1; color:#b02a2a; border-radius:5px; width:30px; height:28px; font-size:14px; cursor:pointer;}
+  .cmd-meta{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+  .cmd-fields{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:8px; font-size:13px;}
+  .cmd-fields input{width:62px; padding:6px 6px; border:1px solid var(--line); border-radius:5px; font-family:'IBM Plex Mono',monospace; font-size:13px; text-align:center;}
+  .cmd-sub{font-family:'IBM Plex Mono',monospace;}
+  .cmd-est{font-size:11px; color:var(--ink-soft); margin-top:3px; font-style:italic;}
+  #cmd-totals{padding:10px 12px; border-radius:6px; background:var(--amber-soft); margin:10px 0; font-size:13px;}
   .mq-left{min-width:0;}
   .mq-codes{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:3px; word-break:break-all;}
   .mq-codes b{color:var(--ink);}
@@ -371,7 +383,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06t</span>
+    <h1>KC20 — ADMINISTRATION</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06u</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -715,6 +727,7 @@
         <button class="subtab-btn" data-sub="addremove">Ajouter / Enlever</button>
         <button class="subtab-btn" data-sub="transfer">Transvaser</button>
         <button class="subtab-btn" data-sub="manques">Manques</button>
+        <button class="subtab-btn" data-sub="commande">Commande</button>
       </div>
 
       <div id="sub-consult" class="subview active">
@@ -783,6 +796,18 @@
         <div id="tr-detail"></div>
       </div>
 
+      <div id="sub-commande" class="subview">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; flex-wrap:wrap;">
+          <label for="cmd-target" style="font-weight:600;">Stock à atteindre par référence :</label>
+          <input type="text" inputmode="numeric" id="cmd-target" value="10" autocomplete="off" style="width:64px; padding:6px 8px; border:1px solid var(--line); border-radius:5px; font-family:'IBM Plex Mono',monospace; text-align:center;">
+        </div>
+        <p class="decomp-example" style="margin:0 0 6px;">Seules les références ajoutées avec 🛒 depuis l'onglet Manques apparaissent ici. Quantité et prix sont modifiables ligne par ligne ; les prix sont des estimations indicatives (€ HT à l'unité).</p>
+        <div id="cmd-totals"></div>
+        <button type="button" id="cmd-copy-btn" class="apply-btn" style="width:100%; margin-bottom:6px;">📋 Copier la commande</button>
+        <button type="button" id="cmd-clear-btn" class="apply-btn" style="width:100%; margin-bottom:10px; background:#fff; color:#b02a2a; border:1px solid var(--line);">Vider la commande</button>
+        <div id="cmd-list"></div>
+      </div>
+
       <div id="sub-manques" class="subview">
       <div class="fam-dd" id="mq-fam-dd" style="margin-bottom:10px;">
         <button type="button" class="fam-dd-btn" id="mq-fam-dd-btn">
@@ -792,11 +817,7 @@
         <div class="fam-dd-list" id="mq-fam-dd-list"></div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:13px;">
-        <label for="mq-target" style="font-weight:600;">Stock à atteindre par référence :</label>
-        <input type="text" inputmode="numeric" id="mq-target" value="10" autocomplete="off" style="width:64px; padding:6px 8px; border:1px solid var(--line); border-radius:5px; font-family:'IBM Plex Mono',monospace; text-align:center;">
-      </div>
-      <button type="button" id="mq-copy-btn" class="apply-btn mq-copy-btn">📋 Copier la liste à commander (ruptures + stock bas)</button>
+      <button type="button" id="mq-add-all-btn" class="apply-btn mq-copy-btn">🛒 Ajouter toute la liste (ruptures + stock bas) à la commande</button>
       <div class="stock-subnav">
         <button class="mqtab-btn active" data-mqsub="rupture">Rupture totale</button>
         <button class="mqtab-btn" data-mqsub="transvaser">À transvaser</button>
@@ -1398,7 +1419,7 @@ if(LEGEND_UNCONFIRMED.length === 0){
     }catch(e){ nmsg.textContent = '✗ Injoignable : ' + e.message; }
   });
   if(window.__kc20Mode === 'sheet'){
-    const pull = async () => { const changed = await window.__kc20Pull(); render(); if(changed){ try{ await loadStock(); }catch(e){} } };
+    const pull = async () => { const changed = await window.__kc20Pull(); render(); if(changed){ try{ await loadStock(); await loadCommande(); }catch(e){} } };
     pull();
     setInterval(() => { if(document.visibilityState === 'visible') pull(); }, 60000);
     document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') pull(); });
@@ -2780,6 +2801,7 @@ function mqItemHtml(d){
       <span class="mq-pill ${mqPillClass(s.etagere)}">Étag. ${s.etagere}</span>
       <span class="mq-pill ${mqPillClass(s.tiroir)}">Tiroir ${s.tiroir}</span>
     </div>
+    <button type="button" class="mq-order-btn" data-ref="${escAttr(d.ref)}" title="Ajouter à la commande">🛒</button>
   </div>`;
 }
 
@@ -2792,28 +2814,6 @@ document.querySelectorAll('.mqtab-btn').forEach(btn=>{
   });
 });
 
-function mqCopyList(){
-  const pool = DATA.filter(d => stockState[d.ref] && (d.real || (stockState[d.ref].etagere + stockState[d.ref].tiroir) > 0) && (!mqSelectedCats || mqSelectedCats.includes(d.cat)));
-  const lines = [];
-  let target = parseInt(String(document.getElementById('mq-target').value).replace(/\D/g, ''), 10);
-  if(isNaN(target) || target < 1) target = 10;
-  let totalPieces = 0;
-  pool.forEach(d => {
-    const s = stockState[d.ref], tot = s.etagere + s.tiroir;
-    if(tot > LOW_THRESHOLD) return;
-    const q = Math.max(0, target - tot);
-    if(q === 0) return;
-    totalPieces += q;
-    const c = mqCodes(d);
-    lines.push([d.ref, c.pk ? 'Parker ' + c.pk : '', c.iso ? 'Isoflex ' + c.iso : '', tot === 0 ? 'RUPTURE' : 'stock ' + tot, 'COMMANDER ' + q].filter(Boolean).join(' | '));
-  });
-  if(lines.length) lines.push('', 'Total : ' + totalPieces + ' pièce(s) pour remonter chaque référence à ' + target + '.');
-  const txt = lines.length ? lines.join('\n') : 'Rien à commander.';
-  const done = () => { const b = document.getElementById('mq-copy-btn'); const o = b.textContent; b.textContent = '✓ ' + (lines.length ? lines.length - 2 : 0) + ' ligne(s) copiée(s)'; setTimeout(()=>{ b.textContent = o; }, 2000); };
-  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, () => { window.prompt('Copie la liste :', txt); }); }
-  else { window.prompt('Copie la liste :', txt); }
-}
-document.getElementById('mq-copy-btn').addEventListener('click', mqCopyList);
 
 function renderManques(){
   // toute référence suivie (ou qui a du stock) est prise en compte
@@ -2860,6 +2860,7 @@ function renderManques(){
   } else {
     bas.forEach(d => { bSec.innerHTML += mqItemHtml(d); });
   }
+  if(typeof refreshOrderButtons === 'function') refreshOrderButtons();
 }
 
 
@@ -4039,8 +4040,218 @@ function goToAdjustStock(ref){
   document.getElementById('sub-addremove').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+
+// ---------- Commande : estimation de prix + liste de commande ----------
+const CMD_KEY = 'commande-v1';
+let commande = {};   // ref -> { qty: nombre|null (auto), price: nombre|null (estimation) }
+let cmdSaveTimer = null;
+
+const PRICE_DN = {4:3.5, 5:4, 6:5, 8:6.5, 10:7.5, 13:9, 16:11, 20:14, 25:18, 32:26, 38:36, 51:55};
+const PRICE_JS = {4:3, 5:3, 6:3, 8:3.5, 10:4, 13:4.5, 16:5.5, 20:7, 25:10, 32:18, 38:24, 51:34};
+const PRICE_TUBE = {6:2.5, 8:2.5, 10:3, 12:3.5, 14:4, 15:4.5, 16:5, 18:6, 20:7, 22:8, 25:10, 28:11, 30:14, 35:18, 38:22, 42:28};
+function cmdNearest(table, n){
+  const keys = Object.keys(table).map(Number).sort((a,b) => a-b);
+  let best = keys[0];
+  keys.forEach(k => { if(Math.abs(k - n) < Math.abs(best - n)) best = k; });
+  return table[best];
+}
+// Estimation indicative du prix unitaire (€ HT, ordre de grandeur distributeur). Modifiable ligne par ligne.
+function estPrice(d){
+  const cat = d.cat || '';
+  const ref = d.ref || '';
+  const half = v => Math.max(2, Math.round(v * 2) / 2);
+  if(cat === 'JS' || cat === 'JS ISOFLEX'){
+    const dn = parseInt(d.taille, 10) || parseInt((ref.match(/\d+/) || [])[0], 10) || 10;
+    return half(cmdNearest(PRICE_JS, dn) * (cat === 'JS ISOFLEX' ? 0.9 : 1));
+  }
+  if(cat === 'ADPT') return 6;
+  if(cat.indexOf('CS ') !== 0){
+    // RAB (raccords à bagues) : taille = Ø tube (8L, 12S…)
+    const tube = parseInt(d.taille, 10);
+    if(!isNaN(tube)){
+      const serieS = /S$/.test(String(d.taille)) ? 1.2 : 1;
+      const fam = {B:0.35, E:0.5, OBM:0.7, OBF:0.7, UM:1, UF:1, UD:1, UDC:1.1, AT:1.1, CE:1.5, CM:1.5, CF:1.5, T:1.8, TO:1.9, TOR:1.9, CX:2.2}[cat];
+      return half(cmdNearest(PRICE_TUBE, tube) * (fam === undefined ? 1 : fam) * serieS);
+    }
+    return 8;
+  }
+  const dn = parseInt(d.taille, 10);
+  let p = cmdNearest(PRICE_DN, isNaN(dn) ? 13 : dn);
+  const code = cat.replace(/^CS /, '').replace(/ ISOFLEX$/, '');
+  const male = ['MBSP','MC','MJ','MJA','MS','MB','MG CYL','MJG','MTMK','EMAL','EMAS','EMN','EMG','MD','MVA','EL','ELG','JD'];
+  if(male.indexOf(code) >= 0) p = Math.max(p * 0.65, 4);
+  else if(code === 'BR' || code === 'BR6') p *= 1.6;
+  else if(code === 'OR') p *= 1.1;
+  else if(code === 'FI') p *= 0.9;
+  if(d.angle === '45°') p *= 1.15; else if(d.angle === '90°') p *= 1.25;
+  if(ref.indexOf('CS') === 0) p *= 0.8;
+  if(/ISOFLEX/.test(cat) || /ISOFLEX/.test(ref)) p *= 0.9;
+  return half(p);
+}
+
+let DATA_IDX = null;
+function dataByRef(ref){
+  if(!DATA_IDX){ DATA_IDX = {}; DATA.forEach(d => { DATA_IDX[d.ref] = d; }); }
+  return DATA_IDX[ref] || null;
+}
+function escAttr(s){ return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function fmtEur(v){ return (Math.round(v * 100) / 100).toLocaleString('fr-FR', {minimumFractionDigits: 0, maximumFractionDigits: 2}) + ' €'; }
+function cmdParseNum(v){ const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; }
+function cmdTarget(){
+  const el = document.getElementById('cmd-target');
+  let t = el ? parseInt(String(el.value).replace(/\D/g, ''), 10) : 10;
+  if(isNaN(t) || t < 1) t = 10;
+  return t;
+}
+function cmdQtyOf(ref){
+  const c = commande[ref];
+  if(c && c.qty !== null && c.qty !== undefined) return c.qty;
+  const s = stockState[ref] || {etagere:0, tiroir:0};
+  return Math.max(0, cmdTarget() - (s.etagere + s.tiroir));
+}
+function cmdPriceOf(ref){
+  const c = commande[ref];
+  if(c && c.price !== null && c.price !== undefined) return c.price;
+  const d = dataByRef(ref);
+  return d ? estPrice(d) : 0;
+}
+function cmdSave(){
+  clearTimeout(cmdSaveTimer);
+  cmdSaveTimer = setTimeout(async () => {
+    try{ await window.storage.set(CMD_KEY, JSON.stringify({ target: cmdTarget(), items: commande }), true); }catch(e){}
+  }, 400);
+}
+async function loadCommande(){
+  try{
+    const res = await window.storage.get(CMD_KEY, true);
+    if(res && res.value){
+      const j = JSON.parse(res.value);
+      commande = (j && j.items) || {};
+      const el = document.getElementById('cmd-target');
+      if(el && j && j.target) el.value = j.target;
+    }
+  }catch(e){}
+  renderCommande();
+  refreshOrderButtons();
+}
+function cmdCount(){ return Object.keys(commande).length; }
+function refreshOrderButtons(){
+  document.querySelectorAll('.mq-order-btn').forEach(b => {
+    const on = !!commande[b.dataset.ref];
+    b.classList.toggle('on', on);
+    b.textContent = on ? '✓' : '🛒';
+    b.title = on ? 'Retirer de la commande' : 'Ajouter à la commande';
+  });
+  const nb = document.querySelector('.subtab-btn[data-sub="commande"]');
+  if(nb) nb.textContent = 'Commande' + (cmdCount() ? ' (' + cmdCount() + ')' : '');
+}
+function cmdToggle(ref){
+  if(commande[ref]) delete commande[ref]; else commande[ref] = { qty: null, price: null };
+  cmdSave(); refreshOrderButtons(); renderCommande();
+}
+function cmdTotals(){
+  let pieces = 0, total = 0;
+  Object.keys(commande).forEach(ref => { const q = cmdQtyOf(ref); pieces += q; total += q * cmdPriceOf(ref); });
+  return { pieces, total };
+}
+function cmdUpdateTotals(){
+  const t = cmdTotals();
+  const box = document.getElementById('cmd-totals');
+  if(box) box.innerHTML = cmdCount() ? `<b>${cmdCount()}</b> référence(s) · <b>${t.pieces}</b> pièce(s) · <b>≈ ${fmtEur(t.total)} HT</b> <span style="opacity:.7;">(estimation, ± 25 %)</span>` : '';
+}
+function renderCommande(){
+  const list = document.getElementById('cmd-list');
+  if(!list) return;
+  const refs = Object.keys(commande);
+  if(!refs.length){
+    list.innerHTML = '<div class="mq-empty">Aucune référence dans la commande.<br>Dans l’onglet Manques, appuie sur 🛒 à côté d’une référence pour l’ajouter ici.</div>';
+    cmdUpdateTotals(); return;
+  }
+  list.innerHTML = '';
+  refs.forEach(ref => {
+    const d = dataByRef(ref);
+    const s = stockState[ref] || {etagere:0, tiroir:0};
+    const c = d ? mqCodes(d) : {pk:'', iso:''};
+    const codes = [];
+    if(c.pk) codes.push('Parker <b>' + c.pk + '</b>');
+    if(c.iso) codes.push('Isoflex <b>' + c.iso + '</b>');
+    const q = cmdQtyOf(ref), p = cmdPriceOf(ref);
+    const isEst = !(commande[ref].price !== null && commande[ref].price !== undefined);
+    const div = document.createElement('div');
+    div.className = 'cmd-line';
+    div.dataset.ref = ref;
+    div.innerHTML = `
+      <div class="cmd-head"><span class="code">${escAttr(ref)}</span><button type="button" class="cmd-del" title="Retirer de la commande">✕</button></div>
+      ${codes.length ? '<div class="mq-codes">' + codes.join(' · ') + '</div>' : ''}
+      <div class="cmd-meta">Stock : étag. ${s.etagere} · tiroir ${s.tiroir} (total ${s.etagere + s.tiroir})</div>
+      <div class="cmd-fields">
+        <label>Qté <input type="text" inputmode="numeric" class="cmd-qty" value="${q}" autocomplete="off"></label>
+        <span>×</span>
+        <label>Prix <input type="text" inputmode="decimal" class="cmd-price" value="${p}" autocomplete="off"> €</label>
+        <span>=</span><b class="cmd-sub">${fmtEur(q * p)}</b>
+      </div>
+      <div class="cmd-est">${isEst ? 'prix estimé' : 'prix modifié'}</div>`;
+    const qi = div.querySelector('.cmd-qty'), pi = div.querySelector('.cmd-price'), sub = div.querySelector('.cmd-sub'), est = div.querySelector('.cmd-est');
+    qi.addEventListener('input', () => {
+      const n = parseInt(String(qi.value).replace(/\D/g, ''), 10);
+      commande[ref].qty = isNaN(n) ? 0 : n;
+      sub.textContent = fmtEur(cmdQtyOf(ref) * cmdPriceOf(ref)); cmdUpdateTotals(); cmdSave();
+    });
+    pi.addEventListener('input', () => {
+      const n = cmdParseNum(pi.value);
+      commande[ref].price = n === null ? null : n;
+      est.textContent = n === null ? 'prix estimé' : 'prix modifié';
+      sub.textContent = fmtEur(cmdQtyOf(ref) * cmdPriceOf(ref)); cmdUpdateTotals(); cmdSave();
+    });
+    div.querySelector('.cmd-del').addEventListener('click', () => cmdToggle(ref));
+    list.appendChild(div);
+  });
+  cmdUpdateTotals();
+}
+function cmdCopy(){
+  const refs = Object.keys(commande);
+  const lines = refs.map(ref => {
+    const d = dataByRef(ref), s = stockState[ref] || {etagere:0, tiroir:0};
+    const c = d ? mqCodes(d) : {pk:'', iso:''};
+    const q = cmdQtyOf(ref), p = cmdPriceOf(ref);
+    return [ref, c.pk ? 'Parker ' + c.pk : '', c.iso ? 'Isoflex ' + c.iso : '', 'stock ' + (s.etagere + s.tiroir), 'COMMANDER ' + q, '~' + p + ' €/u = ~' + (Math.round(q * p * 100) / 100) + ' €'].filter(Boolean).join(' | ');
+  });
+  const t = cmdTotals();
+  if(lines.length) lines.push('', 'Total : ' + t.pieces + ' pièce(s), environ ' + Math.round(t.total) + ' € HT (estimation).');
+  const txt = lines.length ? lines.join('\n') : 'Commande vide.';
+  const b = document.getElementById('cmd-copy-btn');
+  const done = () => { const o = b.textContent; b.textContent = '✓ Copié'; setTimeout(() => { b.textContent = o; }, 2000); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, () => { window.prompt('Copie la commande :', txt); }); }
+  else { window.prompt('Copie la commande :', txt); }
+}
+function cmdAddAllLow(){
+  const pool = DATA.filter(d => stockState[d.ref] && (d.real || (stockState[d.ref].etagere + stockState[d.ref].tiroir) > 0) && (!mqSelectedCats || mqSelectedCats.includes(d.cat)));
+  let n = 0;
+  pool.forEach(d => {
+    const s = stockState[d.ref];
+    if((s.etagere + s.tiroir) <= LOW_THRESHOLD && !commande[d.ref]){ commande[d.ref] = { qty: null, price: null }; n++; }
+  });
+  cmdSave(); refreshOrderButtons(); renderCommande();
+  const b = document.getElementById('mq-add-all-btn');
+  const o = b.dataset.label || b.textContent; b.dataset.label = o;
+  b.textContent = '✓ ' + n + ' référence(s) ajoutée(s) à la commande';
+  setTimeout(() => { b.textContent = o; }, 2200);
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest ? e.target.closest('.mq-order-btn') : null;
+  if(b){ cmdToggle(b.dataset.ref); }
+});
+document.getElementById('cmd-copy-btn').addEventListener('click', cmdCopy);
+document.getElementById('mq-add-all-btn').addEventListener('click', cmdAddAllLow);
+document.getElementById('cmd-clear-btn').addEventListener('click', () => {
+  if(!cmdCount()) return;
+  if(confirm('Vider toute la commande (' + cmdCount() + ' référence(s)) ?')){ commande = {}; cmdSave(); refreshOrderButtons(); renderCommande(); }
+});
+document.getElementById('cmd-target').addEventListener('input', () => { renderCommande(); cmdSave(); });
+
 loadStock();
 loadHoseStock();
+loadCommande();
 </script>
 <script>
 if('serviceWorker' in navigator && location.protocol === 'https:'){ window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); }); }
