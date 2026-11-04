@@ -195,6 +195,10 @@
     padding:9px 12px; border:1px solid var(--line); border-radius:6px; background:#fafbfc; margin-bottom:6px;
   }
   .mq-item .code{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; color:var(--steel-dark);}
+  .mq-left{min-width:0;}
+  .mq-codes{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:3px; word-break:break-all;}
+  .mq-codes b{color:var(--ink);}
+  .mq-copy-btn{width:100%; margin-bottom:10px; background:#fff; color:var(--steel-dark); border:1px solid var(--line);}
   .mq-qty-pair{display:flex; gap:6px;}
   .mq-pill{font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:11px; padding:4px 8px; border-radius:5px; min-width:64px; text-align:center;}
   .mq-pill.zero{background:#fbe1e1; color:#b02a2a;}
@@ -367,7 +371,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06r</span>
+    <h1>KC20 FLEXIBLE AIGLE</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06s</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -788,6 +792,7 @@
         <div class="fam-dd-list" id="mq-fam-dd-list"></div>
       </div>
 
+      <button type="button" id="mq-copy-btn" class="apply-btn mq-copy-btn">📋 Copier la liste à commander (ruptures + stock bas)</button>
       <div class="stock-subnav">
         <button class="mqtab-btn active" data-mqsub="rupture">Rupture totale</button>
         <button class="mqtab-btn" data-mqsub="transvaser">À transvaser</button>
@@ -2754,10 +2759,19 @@ function mqPillClass(qty){
   return 'ok';
 }
 
+function mqCodes(d){
+  let pk = '', iso = '';
+  try{ pk = PK_FULL_LOOKUP[d.ref] || ''; iso = ISO_LOOKUP[d.ref] || ''; }catch(e){}
+  return { pk, iso };
+}
 function mqItemHtml(d){
   const s = stockState[d.ref];
+  const c = mqCodes(d);
+  const codes = [];
+  if(c.pk) codes.push(`Parker <b>${c.pk}</b>`);
+  if(c.iso) codes.push(`Isoflex <b>${c.iso}</b>`);
   return `<div class="mq-item">
-    <span class="code">${d.ref}</span>
+    <div class="mq-left"><span class="code">${d.ref}</span>${codes.length ? `<div class="mq-codes">${codes.join(' · ')}</div>` : ''}</div>
     <div class="mq-qty-pair">
       <span class="mq-pill ${mqPillClass(s.etagere)}">Étag. ${s.etagere}</span>
       <span class="mq-pill ${mqPillClass(s.tiroir)}">Tiroir ${s.tiroir}</span>
@@ -2774,8 +2788,25 @@ document.querySelectorAll('.mqtab-btn').forEach(btn=>{
   });
 });
 
+function mqCopyList(){
+  const pool = DATA.filter(d => stockState[d.ref] && (d.real || (stockState[d.ref].etagere + stockState[d.ref].tiroir) > 0) && (!mqSelectedCats || mqSelectedCats.includes(d.cat)));
+  const lines = [];
+  pool.forEach(d => {
+    const s = stockState[d.ref], tot = s.etagere + s.tiroir;
+    if(tot > LOW_THRESHOLD) return;
+    const c = mqCodes(d);
+    lines.push([d.ref, c.pk ? 'Parker ' + c.pk : '', c.iso ? 'Isoflex ' + c.iso : '', tot === 0 ? 'RUPTURE' : 'stock ' + tot].filter(Boolean).join(' | '));
+  });
+  const txt = lines.length ? lines.join('\n') : 'Rien à commander.';
+  const done = () => { const b = document.getElementById('mq-copy-btn'); const o = b.textContent; b.textContent = '✓ ' + lines.length + ' ligne(s) copiée(s)'; setTimeout(()=>{ b.textContent = o; }, 2000); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, () => { window.prompt('Copie la liste :', txt); }); }
+  else { window.prompt('Copie la liste :', txt); }
+}
+document.getElementById('mq-copy-btn').addEventListener('click', mqCopyList);
+
 function renderManques(){
-  const pool = DATA.filter(d => d.real && (!mqSelectedCats || mqSelectedCats.includes(d.cat)));
+  // toute référence suivie (ou qui a du stock) est prise en compte
+  const pool = DATA.filter(d => stockState[d.ref] && (d.real || (stockState[d.ref].etagere + stockState[d.ref].tiroir) > 0) && (!mqSelectedCats || mqSelectedCats.includes(d.cat)));
 
   const rupture = pool.filter(d => d.real && stockState[d.ref].etagere === 0 && stockState[d.ref].tiroir === 0);
   // Priorité : le tiroir doit être rempli en premier (accès rapide) ; l'étagère est la réserve.
@@ -2784,8 +2815,7 @@ function renderManques(){
   const bas = pool.filter(d => {
     const s = stockState[d.ref];
     const isRupture = s.etagere === 0 && s.tiroir === 0;
-    const isTransvaser = s.etagere === 0 || s.tiroir === 0;
-    return !isRupture && !isTransvaser && (s.etagere + s.tiroir) <= LOW_THRESHOLD;
+    return !isRupture && (s.etagere + s.tiroir) <= LOW_THRESHOLD;
   });
 
   const rSec = document.getElementById('mq-section-rupture');
