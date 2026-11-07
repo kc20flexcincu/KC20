@@ -400,7 +400,7 @@
   <div class="tag-strip"></div>
   <div id="js-error-banner" style="display:none; background:#c0392b; color:#fff; padding:10px 12px; font-size:11.5px; border-radius:6px; margin-bottom:10px; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap;"></div>
   <header>
-    <h1>KC20 FLEXIBLE AIGLE — DÉMO</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06p</span>
+    <h1>KC20 FLEXIBLE AIGLE — DÉMO</h1><span id="app-version" style="font-size:10px; opacity:.6; flex:none; font-family:'IBM Plex Mono',monospace;">v2026-09-06q</span>
     <p>Identification (catalogue ChronoFlex) + emplacement physique dans le meuble à tiroirs, et suivi du stock.</p>
   </header>
 
@@ -822,6 +822,7 @@
         <p class="decomp-example" style="margin:0 0 6px;">Seules les références ajoutées avec 🛒 depuis l'onglet Manques apparaissent ici. Quantité et prix sont modifiables ligne par ligne ; les prix sont des estimations indicatives (€ HT à l'unité).</p>
         <div id="cmd-totals"></div>
         <button type="button" id="cmd-copy-btn" class="apply-btn" style="width:100%; margin-bottom:6px;">📋 Copier la commande</button>
+        <button type="button" id="cmd-xlsx-btn" class="apply-btn" style="width:100%; margin-bottom:6px;">📥 Télécharger en Excel (.xlsx)</button>
         <button type="button" id="cmd-clear-btn" class="apply-btn" style="width:100%; margin-bottom:10px; background:#fff; color:#b02a2a; border:1px solid var(--line);">Vider la commande</button>
         <div id="cmd-list"></div>
       </div>
@@ -4204,6 +4205,72 @@ function cmdCopy(){
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, () => { window.prompt('Copie la commande :', txt); }); }
   else { window.prompt('Copie la commande :', txt); }
 }
+// ---------- Export Excel de la commande (xlsx minimal, sans bibliothèque) ----------
+function xlCrc32(u8){
+  let c, crc = 0xFFFFFFFF;
+  if(!xlCrc32.t){ xlCrc32.t = []; for(let n = 0; n < 256; n++){ c = n; for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); xlCrc32.t[n] = c >>> 0; } }
+  for(let i = 0; i < u8.length; i++) crc = xlCrc32.t[(crc ^ u8[i]) & 255] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function xlZip(files){ // files: [{name, data(string)}] — ZIP sans compression
+  const enc = new TextEncoder(); const parts = []; const central = []; let offset = 0;
+  const u16 = n => [n & 255, (n >> 8) & 255], u32 = n => [n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >>> 24) & 255];
+  files.forEach(f => {
+    const nm = enc.encode(f.name), data = enc.encode(f.data), crc = xlCrc32(data);
+    const lh = [].concat(u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(crc), u32(data.length), u32(data.length), u16(nm.length), u16(0));
+    parts.push(new Uint8Array(lh), nm, data);
+    central.push({ nm, crc, size: data.length, offset });
+    offset += lh.length + nm.length + data.length;
+  });
+  let cdSize = 0;
+  central.forEach(c => {
+    const ch = [].concat(u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(c.crc), u32(c.size), u32(c.size), u16(c.nm.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(c.offset));
+    parts.push(new Uint8Array(ch), c.nm); cdSize += ch.length + c.nm.length;
+  });
+  parts.push(new Uint8Array([].concat(u32(0x06054b50), u16(0), u16(0), u16(central.length), u16(central.length), u32(cdSize), u32(offset), u16(0))));
+  return new Blob(parts, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+function xlEsc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function cmdExportXlsx(){
+  const refs = Object.keys(commande);
+  if(!refs.length){ alert('La commande est vide.'); return; }
+  const rows = refs.map(ref => {
+    const d = dataByRef(ref), s = stockState[ref] || {etagere:0, tiroir:0};
+    const c = d ? mqCodes(d) : {pk:'', iso:''};
+    return [ref, d ? d.cat : '', c.pk || '', c.iso || '', (s.etagere|0) + (s.tiroir|0), cmdQtyOf(ref), cmdPriceOf(ref)];
+  });
+  const head = ['Référence', 'Famille', 'Réf. Parker', 'Réf. Isoflex', 'Stock actuel', 'Quantité à commander', 'Prix unitaire estimé (€ HT)', 'Total estimé (€ HT)'];
+  const col = i => String.fromCharCode(65 + i);
+  const txt = (r, i, v, st) => `<c r="${col(i)}${r}" t="inlineStr"${st ? ' s="' + st + '"' : ''}><is><t xml:space="preserve">${xlEsc(v)}</t></is></c>`;
+  const num = (r, i, v, st) => `<c r="${col(i)}${r}"${st ? ' s="' + st + '"' : ''}><v>${v}</v></c>`;
+  let x = '<row r="1">' + head.map((h, i) => txt(1, i, h, 1)).join('') + '</row>';
+  rows.forEach((r, k) => {
+    const n = k + 2;
+    x += `<row r="${n}">` + txt(n, 0, r[0]) + txt(n, 1, r[1]) + txt(n, 2, r[2]) + txt(n, 3, r[3]) + num(n, 4, r[4]) + num(n, 5, r[5]) + num(n, 6, r[6], 2) + `<c r="H${n}" s="2"><f>F${n}*G${n}</f><v>${Math.round(r[5] * r[6] * 100) / 100}</v></c></row>`;
+  });
+  const last = rows.length + 1, tr = last + 1;
+  const tot = rows.reduce((a, r) => a + r[5] * r[6], 0), pcs = rows.reduce((a, r) => a + r[5], 0);
+  x += `<row r="${tr}">` + txt(tr, 0, 'TOTAL', 1) + `<c r="F${tr}" s="1"><f>SUM(F2:F${last})</f><v>${pcs}</v></c><c r="H${tr}" s="3"><f>SUM(H2:H${last})</f><v>${Math.round(tot * 100) / 100}</v></c></row>`;
+  x += `<row r="${tr + 2}">` + txt(tr + 2, 0, 'Prix = estimation indicative (± 25 %), modifiable dans l\'appli. Stock cible : ' + cmdTarget() + ' par référence.') + '</row>';
+  const sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="26" customWidth="1"/><col min="2" max="2" width="14" customWidth="1"/><col min="3" max="4" width="18" customWidth="1"/><col min="5" max="6" width="14" customWidth="1"/><col min="7" max="8" width="20" customWidth="1"/></cols><sheetData>' + x + '</sheetData></worksheet>';
+  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDDE5EE"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="164" fontId="1" fillId="2" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/></cellXfs></styleSheet>';
+  const files = [
+    { name: '[Content_Types].xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>' },
+    { name: '_rels/.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+    { name: 'xl/workbook.xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Commande" sheetId="1" r:id="rId1"/></sheets></workbook>' },
+    { name: 'xl/_rels/workbook.xml.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+    { name: 'xl/styles.xml', data: styles },
+    { name: 'xl/worksheets/sheet1.xml', data: sheet }
+  ];
+  const blob = xlZip(files);
+  const dd = new Date(), stamp = dd.getFullYear() + '-' + String(dd.getMonth()+1).padStart(2,'0') + '-' + String(dd.getDate()).padStart(2,'0');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'KC20_commande_' + stamp + '.xlsx';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+document.getElementById('cmd-xlsx-btn').addEventListener('click', cmdExportXlsx);
+
 function cmdAddAllLow(){
   const pool = DATA.filter(d => stockState[d.ref] && (d.real || (stockState[d.ref].etagere + stockState[d.ref].tiroir) > 0) && (!mqSelectedCats || mqSelectedCats.includes(d.cat)));
   let n = 0;
